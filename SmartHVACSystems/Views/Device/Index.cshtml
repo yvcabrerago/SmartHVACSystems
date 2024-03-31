@@ -1,0 +1,63 @@
+﻿@model IEnumerable<Measurement>
+
+@{
+    ViewData["Title"] = "Demo device";
+}
+
+<div class="container" style="padding: 50px">
+    <div class="row">
+        <div class="col-sm-3">
+            <p>Device id: <p class="fw-bold">@(Model.FirstOrDefault()?.Device ?? "There are any device configured")</p>
+        </div>
+        <div class="col-lg">
+            <p>Time of anomalies detected:</p>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Datetime stamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <th scope="row">@item.TimeStamp</th>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-3">
+            <p>When was last anomaly detected:</p>
+            <p class="fw-bold">
+                    @(Model.Any(m => m.Anomaly) ? @Model.Where(m => m.Anomaly)
+                                                        .OrderByDescending(m => m.TimeStamp)
+                                                        .Select(m => m.TimeStamp)
+                                                        .First()
+                                                        .Humanize() : "Never")
+            </p>
+            <p>Average of anomalies per hour:</p>
+                <p class="fw-bold">
+                        @(Model.Any(m => m.Anomaly) ? Model.Where(m => m.Anomaly)
+                            .GroupBy(m => m.TimeStamp.Hour)
+                            .Select(g => new
+                            {
+                                Hour = g.Key,
+                                AnomaliesCount = g.Count()
+                            })
+                            .Average(g => g.AnomaliesCount) : "Not available" )
+                </p>
+            <p>Average of anomalies per day:</p>
+            <p class="fw-bold">
+                @(Model.Any(m => m.Anomaly) ? Model.Where(m => m.Anomaly)
+                    .GroupBy(m => m.TimeStamp.Day)
+                    .Select(g => new
+                    {
+                        Hour = g.Key,
+                        AnomaliesCount = g.Count()
+                    })
+                    .Average(g => g.AnomaliesCount) : "Not available")
+            </p>
+        </div>
+    </div>
+</div>
